@@ -1,5 +1,6 @@
 ﻿# py -m pip install matplotlib
 #Библиотеки
+from math import ceil
 from pathlib import Path # Библиотека для работы с файлами и их адресами
 from collections import Counter #
 import math # Библиотка для математический действий
@@ -56,7 +57,7 @@ def Dispersia (x_midl, sn, numbers, N):
 
 #Раздел 1. Ряды распределения и интервалы с последующими .
 # Читаем путь к файлу
-fp = Path(r"C:\Users\bahro\source\Projects\Lets_Dance\Lets_Dance\Москва_2021.txt") 
+fp = Path("./Москва_2021.txt") 
 # Дискретный ряд
 if fp.exists():
     with open(fp, "r", encoding="utf-8") as f: # Открыть и прочитать файл, на любом языке с переменной файла f
@@ -80,7 +81,7 @@ if fp.exists():
     x_min = min(numbers)
     x_max = max(numbers)
     k = 7
-    h = (x_max - x_min) / k # длина одного интервала
+    h = int(ceil((x_max - x_min) / k)) # длина одного интервала
 
     print("    ---    ")
     print("Интервальный ряд")
@@ -107,10 +108,13 @@ if fp.exists():
                 break
     # Вывод интервалов
     for i in range(k):
-        left_elem = Edges[i]
-        right_element = Edges[i + 1]
+        left_elem = int(Edges[i])
+        right_element = int(Edges[i + 1])
         mid_element = (left_elem + right_element) / 2
-        print(f"|{i+1:>2}|{left_elem:>7.2f} – {right_element:<7.2f}|{mid_element:>9.2f}|{int_f[i]:>8}|")
+        if i == k-1:
+            print(f"|{i+1:>2}[{left_elem:>7.2f} – {right_element:<7.2f}]{mid_element:>9.2f}|{int_f[i]:>8}|")
+        else:
+            print(f"|{i+1:>2}[{left_elem:>7.2f} – {right_element:<7.2f}){mid_element:>9.2f}|{int_f[i]:>8}|")
 
     print("    ---    ")
     print(f"| {'':>2} | {'Итого':>18} | {'':>9} | {sum(int_f):>8} |")
