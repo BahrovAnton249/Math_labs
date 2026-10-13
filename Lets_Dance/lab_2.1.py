@@ -59,7 +59,7 @@ def inteval_raw_building (mid, l_mid): # функция для построен�
                 k += 1
         chastots.append(k)
     w = [(i / l_mid) for i in chastots] # список относительных частот
-    print(f"| {'Интервал':>12} || {'Частота':>8} || {'Относительная частота':>13.4f}|")
+    print(f"| {'Интервал':>12} || {'Частота':>8} || {'Относительная частота':>22}|")
     k = 0
     for interval in intervals: # вывод интервалов, частот, относительных частот
         interv = f"[{interval[0]}, {interval[1]})"
