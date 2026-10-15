@@ -33,7 +33,7 @@ def calculating_dispersia_s (selection): # функция для расчета 
     sn = set(selection) # уникальные значения выбокри
     k = n - 1 # число свободы
     x_midl = sum([i * selection.count(i) for i in sn]) / n # среднее
-    d = sqrt(sum([selection.count(i) * (i - x_midl)**2 for i in sn]) / k) # исправленная дисперсия
+    d = sum([selection.count(i) * (i - x_midl)**2 for i in sn]) / k # исправленная дисперсия
     return d
 
 def observed_f (s1, s2):# функция для расчета  F набл.
@@ -51,7 +51,7 @@ def calc_f_criet (k1, k2, two_sided): # функция для расчета  F 
         # Двусторонняя (H1: D1 != D2)
         return f.ppf(1 - alpha/2, k1, k2)
 
-def vivod (f_nabl, F_kr): # функция которая по результатам F критического и F набл делает вывод об гипотезе H0
+def output (f_nabl, F_kr): # функция которая по результатам F критического и F набл делает вывод об гипотезе H0
     string = ""
     if f_nabl < F_kr:
         string = f"Нет оснований отвергнуть H0 (дисперсии равны)."
@@ -68,10 +68,10 @@ def analize_res (f_kr_right, f_kr_two, n1, n2, s1, s2, k1, k2, f_nabl):
     print(f"F_кр (α = {alpha}, правосторонняя) = {f_kr_right:.4f}")
     print(f"F_кр (α = {alpha}, двусторонняя) = {f_kr_two:.4f}")
     print("----а) H1: D1 > D2-----")
-    print(f"Вывод для правосторонней критической области: {vivod (f_nabl, f_kr_right)}")
+    print(f"Вывод для правосторонней критической области: {output (f_nabl, f_kr_right)}")
     print()
     print("----б) H1: D1 != D2----")
-    print(f"Вывод для двухсторонней критической области: {vivod (f_nabl, f_kr_two)}")
+    print(f"Вывод для двухсторонней критической области: {output (f_nabl, f_kr_two)}")
 
 def task (all_selections, n): 
     # Число степеней свободы
