@@ -34,16 +34,12 @@ def make_intervals (numbers): # построение интервального 
         left = right
     return all_intervals
 
-def make_intervals_manual(data, s):# построение интервального ряда по средним
-    min_val = min(data)
-    max_val = max(data)
-    h = (max_val - min_val) / s
+def make_intervals_unit(data):# построение интервального ряда средних: от floor(min) до ceil(max), длина интервала 1 год
+    left = math.floor(min(data))
+    right = math.ceil(max(data))
     intervals = []
-    left = min_val
-    for i in range(s):
-        right = left + h
-        intervals.append([left, right])
-        left = right
+    for x in range(left, right):
+        intervals.append([x, x + 1])
     return intervals
 
 def calculate_n (d):# Высчитываем объем группы для одной выборки
@@ -135,13 +131,38 @@ def considering_x (x_nabl, x_kr):
     return answer
 
 # Общая функция для вычисления критериев 
-def calc_values_of_criteries(chastots, teor):
-    n = sum(chastots)
+def calc_values_of_criteries(chastots, teor, alpha):
     x_nabl = sum([(chastots[i] - teor[i])**2 / teor[i] for i in range(len(chastots))])
-    k = len(chastots) - 3
-    alpha = 0.05
+    k = len(chastots) - 3 # k = s - 1 - r, r = 2 (оцениваем среднее и СКО)
     x_kr = chi2.ppf(1 - alpha, k)
-    return x_nabl, x_kr, considering_x(x_nabl, x_kr)
+    return x_nabl, x_kr, k, considering_x(x_nabl, x_kr)
+
+# Объединение малочисленных интервалов (теоретическая частота < 5)
+def merge_small_intervals(intervals, norm_raw, laplace_val, p, chastots, teor, min_teor=5):
+    groups = [] # каждая группа: [первый индекс, последний индекс]
+    start = 0
+    acc = 0 # накопленная теоретическая частота текущей группы
+    for i in range(len(teor)):
+        acc += teor[i]
+        if acc >= min_teor:
+            groups.append([start, i])
+            start = i + 1
+            acc = 0
+    if start < len(teor): # остался малый хвост — присоединяем к последней группе
+        if groups:
+            groups[-1][1] = len(teor) - 1
+        else:
+            groups.append([0, len(teor) - 1])
+    new_int, new_norm, new_lap, new_p, new_ch, new_teor = [], [], [], [], [], []
+    for first, last in groups:
+        new_int.append([intervals[first][0], intervals[last][1]])
+        new_norm.append(norm_raw[first])
+        new_lap.append(laplace_val[first])
+        new_p.append(sum(p[first:last + 1]))
+        new_ch.append(sum(chastots[first:last + 1]))
+        new_teor.append(sum(teor[first:last + 1]))
+    new_norm.append(norm_raw[-1])
+    return new_int, new_norm, new_lap, new_p, new_ch, new_teor
 
 # Функция для вывода таблицы с ответами
 def print_table(intervals, norm_raw, laplace_value, p, imper_chastots, teor_chastots, answer):
@@ -174,32 +195,34 @@ def print_table(intervals, norm_raw, laplace_value, p, imper_chastots, teor_chas
     print(answer)
     
 
-# 
-def inteval_raw_building(numbers, n, N):
+# Проверка нулевой гипотезы о нормальном распределении по критерию Пирсона
+# intervals — интервальный ряд, chastots — эмпирические частоты, alpha — уровень значимости
+def pearson_test(intervals, chastots, alpha, title):
+    n = sum(chastots)
+    midx, sko = calulate_SKO(chastots, intervals, n) # среднее и СКО
+    norm_raw = normirovanie(midx, sko, intervals) # нормированные границы
+    p, laplace_val = laplace_function(norm_raw) # вероятности и значения Лапласа
+    teor = teor_chastots_calc(p, n) # теоретические частоты
+    # объединяем интервалы, где теоретическая частота меньше 5
+    intervals, norm_raw, laplace_val, p, chastots, teor = merge_small_intervals(
+        intervals, norm_raw, laplace_val, p, chastots, teor)
+    x_nabl, x_kr, k, answer = calc_values_of_criteries(chastots, teor, alpha)
+    print(title)
+    print(f"n = {n}, x_ср = {midx:.4f}, СКО = {sko:.4f}, α = {alpha}, число интервалов s = {len(intervals)}, k = {k}")
+    print_table(intervals, norm_raw, laplace_val, p, chastots, teor, answer)
+    return x_nabl, x_kr
+
+def inteval_raw_building(numbers, n, N, alpha=0.05):
     # === Ряд № 1: возраст ===
     intervals_1 = make_intervals(numbers) # получение интервального ряда
     ch_n = caclulating_chastots(numbers, intervals_1)# вычисление частот
-    midx, sko = calulate_SKO(ch_n, intervals_1, len(numbers))# вычисление среднего и СКО
-    first_normraw = normirovanie(midx, sko, intervals_1)#получение нормированного ряда
-    p_first, laplace_val_one = laplace_function(first_normraw) # получение списка вероятностей и значений лапласа
-    teor_1 = teor_chastots_calc(p_first, len(numbers)) # получение списка теоретических частот
-    x_nabl_1, x_kr_1, answer_1 = calc_values_of_criteries(ch_n, teor_1) # получение X набл. и крит. с ответом
-    
-    print("-----Ряд № 1: Возраст-----")
-    print_table(intervals_1, first_normraw, laplace_val_one, p_first, ch_n, teor_1, answer_1)# построение таблицы для первого ряда
-    
+    pearson_test(intervals_1, ch_n, alpha, "-----Ряд № 1: Возраст-----")
+
     # === Ряд № 2: средний возраст ===
-    all_selections, mid = lets_make_a_groops(numbers, n, N) 
-    intervals_2 = make_intervals_manual(mid, 4) # получение интервального ряда
+    all_selections, mid = lets_make_a_groops(numbers, n, N)
+    intervals_2 = make_intervals_unit(mid) # интервалы длиной 1 год
     ch_mids = caclulating_chastots(mid, intervals_2) # вычисление частот
-    sec_midx, sec_sko = calulate_SKO(ch_mids, intervals_2, len(mid))# вычисление среднего и СКО
-    second_normraw = normirovanie(sec_midx, sec_sko, intervals_2)#получение нормированного ряда
-    p_second, laplace_val_two = laplace_function(second_normraw)# получение списка вероятностей и значений лапласа
-    teor_2 = teor_chastots_calc(p_second, len(mid))# получение списка теоретических частот
-    x_nabl_2, x_kr_2, teor_2, answer_2 = calc_values_of_criteries(ch_mids, teor_2)# получение X набл. и крит. с ответом
-    
-    print("----Ряд № 2: Средний возраст-----")
-    print_table(intervals_2, second_normraw, laplace_val_two, p_second, ch_mids, teor_2, answer_2)# построение таблицы для второго ряда
+    pearson_test(intervals_2, ch_mids, alpha, "----Ряд № 2: Средний возраст-----")
 
 fp = Path("./Москва_2021.txt") 
 if fp.exists():
