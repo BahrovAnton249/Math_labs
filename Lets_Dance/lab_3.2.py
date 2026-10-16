@@ -42,14 +42,18 @@ def observed_f (s1, s2):# функция для расчета  F набл.
     f_nabl = max_s/min_s
     return f_nabl
 
-def calc_f_criet (k1, k2, two_sided): # функция для расчета  F критического.
+def calc_f_criet (s1, s2, k1, k2, two_sided): # функция для расчета  F критического.
+    if s1 >= s2: 
+        k_big, k_small = k1, k2
+    else:
+        k_big, k_small = k2, k1
     alpha = 0.05
     if two_sided == False: # проверка на двухсторонность
         # Правосторонняя (H1: D1 > D2)
-        return f.ppf(1 - alpha, k1, k2)
+        return f.ppf(1 - alpha, k_big, k_small)
     else:
         # Двусторонняя (H1: D1 != D2)
-        return f.ppf(1 - alpha/2, k1, k2)
+        return f.ppf(1 - alpha/2, k_big, k_small)
 
 def output (f_nabl, F_kr): # функция которая по результатам F критического и F набл делает вывод об гипотезе H0
     string = ""
@@ -90,8 +94,8 @@ def task (all_selections, n):
     # Вычисление наблюдаемого f
     f_nabl = observed_f(s1, s2)
     # Рассчет правостороннего и двухстороннего критерия
-    f_kr_right =  calc_f_criet (k1, k2, False) # Правосторонняя
-    f_kr_two =  calc_f_criet (k1, k2, True) # Двухсторонняя 
+    f_kr_right =  calc_f_criet (s1, s2, k1, k2, False) # Правосторонняя
+    f_kr_two =  calc_f_criet (s1, s2, k1, k2, True) # Двухсторонняя 
     #Прокоментировать результаты и подвести вывод
     analize_res(f_kr_right, f_kr_two, n1, n2, s1, s2, k1, k2, f_nabl)
 
