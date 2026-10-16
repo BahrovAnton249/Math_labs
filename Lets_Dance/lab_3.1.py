@@ -122,33 +122,6 @@ def calc_values_of_criteries(chastots, teor, alpha):
     x_kr = chi2.ppf(1 - alpha, k)
     return x_nabl, x_kr, k, considering_x(x_nabl, x_kr)
 
-# Объединение малочисленных интервалов (теоретическая частота < 5)
-def merge_small_intervals(intervals, norm_raw, laplace_val, p, chastots, teor, min_teor=5):
-    groups = [] # каждая группа: [первый индекс, последний индекс]
-    start = 0
-    acc = 0 # накопленная теоретическая частота текущей группы
-    for i in range(len(teor)):
-        acc += teor[i]
-        if acc >= min_teor:
-            groups.append([start, i])
-            start = i + 1
-            acc = 0
-    if start < len(teor): # остался малый хвост — присоединяем к последней группе
-        if groups:
-            groups[-1][1] = len(teor) - 1
-        else:
-            groups.append([0, len(teor) - 1])
-    new_int, new_norm, new_lap, new_p, new_ch, new_teor = [], [], [], [], [], []
-    for first, last in groups:
-        new_int.append([intervals[first][0], intervals[last][1]])
-        new_norm.append(norm_raw[first])
-        new_lap.append(laplace_val[first])
-        new_p.append(sum(p[first:last + 1]))
-        new_ch.append(sum(chastots[first:last + 1]))
-        new_teor.append(sum(teor[first:last + 1]))
-    new_norm.append(norm_raw[-1])
-    return new_int, new_norm, new_lap, new_p, new_ch, new_teor
-
 # Функция для вывода таблицы с ответами
 def print_table(intervals, norm_raw, laplace_value, p, imper_chastots, teor_chastots, answer):
     data = []
@@ -188,9 +161,10 @@ def pearson_test(intervals, chastots, alpha, title):
     norm_raw = normirovanie(midx, sko, intervals) # нормированные границы
     p, laplace_val = laplace_function(norm_raw) # вероятности и значения Лапласа
     teor = teor_chastots_calc(p, n) # теоретические частоты
-    # объединяем интервалы, где теоретическая частота меньше 5
-    intervals, norm_raw, laplace_val, p, chastots, teor = merge_small_intervals(
-        intervals, norm_raw, laplace_val, p, chastots, teor)
+    if len(chastots) - 3 < 1: # при s < 4 степеней свободы нет, критерий не применим
+        print(title)
+        print(f"Интервалов s = {len(chastots)}, k = s - 3 < 1: критерий Пирсона неприменим")
+        return None
     x_nabl, x_kr, k, answer = calc_values_of_criteries(chastots, teor, alpha)
     print(title)
     print(f"n = {n}, x_ср = {midx:.4f}, СКО = {sko:.4f}, α = {alpha}, число интервалов s = {len(intervals)}, k = {k}")
