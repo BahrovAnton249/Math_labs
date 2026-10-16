@@ -12,27 +12,12 @@ pd.set_option('display.max_columns', None)   # показать все стол�
 pd.set_option('display.width', 200)          # ширина вывода
 pd.set_option('display.max_colwidth', 30)    # ширина столбцов
 
-def calculate_s (numbers): # вычислим число интервалов по формуле Стёрджеса
-    N = len(numbers)
-    s = 1 + 3.322 * math.log10(N)
-    return int(s)
-def calculate_h (numbers): #считаем длину одного интервала
-    min_age = min(numbers)
-    max_age = max(numbers)
-    h = math.ceil((max_age - min_age) / calculate_s(numbers))
-    return h
-def make_intervals (numbers): # построение интервального ряда 
-    h = calculate_h(numbers)
-    sn = set(numbers)
-    all_intervals = []
-    min_val = min(numbers)
-    left = min_val
-    s = calculate_s(numbers)
-    for i in range(s):
-        right = left + h
-        all_intervals.append([left, right])
-        left = right
-    return all_intervals
+def make_intervals (numbers, k=7): # построение интервального ряда из лабы 1.1: k групп с равными интервалами
+    x_min = min(numbers)
+    x_max = max(numbers)
+    h = math.ceil((x_max - x_min) / k) # длина одного интервала
+    edges = [x_min + i * h for i in range(k + 1)] # границы интервалов
+    return [[edges[i], edges[i + 1]] for i in range(k)]
 
 def make_intervals_unit(data):# построение интервального ряда средних: от floor(min) до ceil(max), длина интервала 1 год
     left = math.floor(min(data))
