@@ -12,6 +12,7 @@ pd.set_option('display.max_columns', None)   # показать все стол�
 pd.set_option('display.width', 200)          # ширина вывода
 pd.set_option('display.max_colwidth', 30)    # ширина столбцов
 
+<<<<<<< HEAD
 def calculate_s (numbers): # вычислим число интервалов по формуле Стёрджеса
     N = len(numbers)
     s = 1 + 3.322 * math.log10(N)
@@ -33,6 +34,14 @@ def make_intervals (numbers): # построение интервального 
         all_intervals.append([left, right])
         left = right
     return all_intervals
+=======
+def make_intervals (numbers, k=7): # построение интервального ряда из лабы 1.1: k групп с равными интервалами
+    x_min = min(numbers)
+    x_max = max(numbers)
+    h = math.ceil((x_max - x_min) / k) # длина одного интервала
+    edges = [x_min + i * h for i in range(k + 1)] # границы интервалов
+    return [[edges[i], edges[i + 1]] for i in range(k)]
+>>>>>>> beb57bd561c1824fe955d99cd5602556c518e4d6
 
 def make_intervals_unit(data):# построение интервального ряда средних: от floor(min) до ceil(max), длина интервала 1 год
     left = math.floor(min(data))
@@ -137,6 +146,7 @@ def calc_values_of_criteries(chastots, teor, alpha):
     x_kr = chi2.ppf(1 - alpha, k)
     return x_nabl, x_kr, k, considering_x(x_nabl, x_kr)
 
+<<<<<<< HEAD
 # Объединение малочисленных интервалов (теоретическая частота < 5)
 def merge_small_intervals(intervals, norm_raw, laplace_val, p, chastots, teor, min_teor=5):
     groups = [] # каждая группа: [первый индекс, последний индекс]
@@ -164,6 +174,8 @@ def merge_small_intervals(intervals, norm_raw, laplace_val, p, chastots, teor, m
     new_norm.append(norm_raw[-1])
     return new_int, new_norm, new_lap, new_p, new_ch, new_teor
 
+=======
+>>>>>>> beb57bd561c1824fe955d99cd5602556c518e4d6
 # Функция для вывода таблицы с ответами
 def print_table(intervals, norm_raw, laplace_value, p, imper_chastots, teor_chastots, answer):
     data = []
@@ -203,9 +215,16 @@ def pearson_test(intervals, chastots, alpha, title):
     norm_raw = normirovanie(midx, sko, intervals) # нормированные границы
     p, laplace_val = laplace_function(norm_raw) # вероятности и значения Лапласа
     teor = teor_chastots_calc(p, n) # теоретические частоты
+<<<<<<< HEAD
     # объединяем интервалы, где теоретическая частота меньше 5
     intervals, norm_raw, laplace_val, p, chastots, teor = merge_small_intervals(
         intervals, norm_raw, laplace_val, p, chastots, teor)
+=======
+    if len(chastots) - 3 < 1: # при s < 4 степеней свободы нет, критерий не применим
+        print(title)
+        print(f"Интервалов s = {len(chastots)}, k = s - 3 < 1: критерий Пирсона неприменим")
+        return None
+>>>>>>> beb57bd561c1824fe955d99cd5602556c518e4d6
     x_nabl, x_kr, k, answer = calc_values_of_criteries(chastots, teor, alpha)
     print(title)
     print(f"n = {n}, x_ср = {midx:.4f}, СКО = {sko:.4f}, α = {alpha}, число интервалов s = {len(intervals)}, k = {k}")
